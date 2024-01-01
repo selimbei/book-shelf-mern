@@ -1,6 +1,6 @@
 /* eslint-disable react/jsx-no-target-blank */
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 
 const books = [
   {
@@ -22,7 +22,6 @@ const books = [
 export default function App() {
   const [items, setItems] = useState(books);
   const [filteredItems, setFilteredItems] = useState(items);
-  const [foundBooks, setFoundBooks] = useState(filteredItems);
 
   function handleAddItem(item) {
     setItems([...items, item]);
@@ -61,27 +60,21 @@ export default function App() {
     }
   }
 
-  function handlerSearchBook(title) {
-    if (!title) {return}
-    setFoundBooks(foundBooks.filter((book) => book.title === title))
-  }
-
   return (
     <>
-      <Header onAddItem={handleAddItem} onSearchBook={handlerSearchBook}/>
+      <Header onAddItem={handleAddItem}/>
       <Tab onFilter={handleFilter}/>
-      <List items={foundBooks} onDeleteItem={handleDeleteItem} onToggleStatus={handleToggleStatus} onEdititem={handleEditItem}/>
+      <List items={filteredItems} onDeleteItem={handleDeleteItem} onToggleStatus={handleToggleStatus} onEdititem={handleEditItem}/>
     </>
   );
 }
 
-function Header({ onAddItem, onSearchBook }) {
+function Header({ onAddItem }) {
   const [showModal, setShowModal] = useState(false);
   const [title, setTitle] = useState('');
   const [author, setAuthor] = useState('');
   const [year, setYear] = useState('');
   const [isComplete, setIsComplete] = useState();
-  const [searchText, setSearchText] = useState('');
 
   function handlerSubmit(e) {
     e.preventDefault();
@@ -90,6 +83,8 @@ function Header({ onAddItem, onSearchBook }) {
 
     const newBook = { title, author, year, isComplete, id: Date.now() };
     onAddItem(newBook);
+
+    setShowModal(false);
 
     setTitle('');
     setAuthor('');
@@ -131,11 +126,6 @@ function Header({ onAddItem, onSearchBook }) {
             className="py-2 text-sm text-slate-800 bg-slate-50 border border-slate-200 rounded-full pl-10"
             placeholder="Cari judul buku"
             autoComplete="off"
-            value={searchText}
-            onChange={(e) => {
-              setSearchText(e.target.value);
-              onSearchBook(searchText);
-            }}
           />
         </div>
       </form>
@@ -162,8 +152,18 @@ function Header({ onAddItem, onSearchBook }) {
       </button>
       {showModal ? (
         <>
-          <div className="bg-black/50 flex justify-center items-end overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none">
-            <div className="w-full my-6 mx-6 max-w-3xl">
+          <div
+            className="bg-black/50 flex justify-center items-end overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none"
+            onClick={() => {
+              setShowModal(false);
+            }}
+          >
+            <div
+              className="w-full my-6 mx-6 max-w-3xl"
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
+            >
               <div className="border-0 rounded-lg shadow-lg flex flex-col w-full bg-white outline-none focus:outline-none">
                 <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
@@ -351,6 +351,24 @@ function List({ items, onDeleteItem, onToggleStatus, onEdititem }) {
 
 function ListItem({ item, onDeleteItem, onToggleStatus }) {
   const [showPopup, setShowPopup] = useState(false);
+  const ref = useRef();
+
+  useEffect(() => {
+    const checkIfClickedOutside = (e) => {
+      // If the menu is open and the clicked target is not within the menu,
+      // then close the menu
+      if (showPopup && ref.current && !ref.current.contains(e.target)) {
+        setShowPopup(false);
+      }
+    };
+
+    document.addEventListener("mousedown", checkIfClickedOutside);
+
+    return () => {
+      // Cleanup the event listener
+      document.removeEventListener("mousedown", checkIfClickedOutside);
+    };
+  }, [showPopup]);
 
   return (
     <li className="flex bg-white overflow-hidden">
@@ -365,7 +383,7 @@ function ListItem({ item, onDeleteItem, onToggleStatus }) {
         )}
       </div>
       <div className="p-2">
-        <div className="flex justify-end items-center px-4 pt-4">
+        <div className="flex justify-end items-center px-4 pt-4" ref={ref}>
           {/* Dropdown menu */}
           {showPopup ? (
             <div className="">
