@@ -63,7 +63,7 @@ export default function App() {
   return (
     <>
       <Header onAddItem={handleAddItem} />
-      <Tab onFilter={handleFilter} />
+      <Tabs onFilter={handleFilter} />
       <List
         items={filteredItems}
         onDeleteItem={handleDeleteItem}
@@ -299,55 +299,55 @@ function Modal({ onAddItem, setShowModal }) {
   );
 }
 
-function Tab({ onFilter }) {
+function Tabs({ onFilter }) {
+  // const tabs = ['All', 'Done', 'Undone'];
+  const tabs = [
+    {"content": 'All',
+      "bool": undefined
+    },
+    {"content": 'Done',
+      "bool": true
+    },
+    {"content": 'Undone',
+      "bool": false
+    },
+  ];
+  const [activeTab, setActiveTab] = useState(0);
+
   return (
     <nav className="flex justify-center mt-4">
       <div className="text-sm font-medium text-center text-slate-400">
         <ul className="flex flex-wrap -mb-px">
-          <li
-            className="me-2"
-            onClick={() => {
-              onFilter();
-            }}
-          >
-            <a
-              href="#"
-              className="inline-block p-4 border-b-2 border-transparent rounded-t-lg border-slate-400 hover:text-blue-500 hover:border-blue-500 focus:text-blue-500 focus:border-blue-500"
-            >
-              All
-            </a>
-          </li>
-          <li
-            className="me-2"
-            onClick={() => {
-              onFilter(true);
-            }}
-          >
-            <a
-              href="#"
-              className="inline-block p-4 border-b-2 border-transparent rounded-t-lg border-slate-400 hover:text-blue-500 hover:border-blue-500 focus:text-blue-500 focus:border-blue-500"
-            >
-              Done
-            </a>
-          </li>
-          <li
-            className="me-2"
-            onClick={() => {
-              onFilter(false);
-            }}
-          >
-            <a
-              href="#"
-              className="inline-block p-4 border-b-2 border-transparent rounded-t-lg border-slate-400 hover:text-blue-500 hover:border-blue-500 focus:text-blue-500 focus:border-blue-500"
-            >
-              Undone
-            </a>
-          </li>
+          {tabs.map((tab, index) => (
+            <Tab
+              key={index}
+              label={tab.content}
+              onClick={() => {
+                setActiveTab(index);
+                onFilter(tab.bool)
+              }}
+              isActive={index === activeTab}
+            />
+          ))}
         </ul>
       </div>
     </nav>
   );
 }
+
+  function Tab({label, onClick, isActive}) {
+    return (
+      <li className="me-2">
+        <a
+          href="#"
+          className={`inline-block p-4 border-b-2 border-transparent ${isActive ? "text-blue-500 border-blue-500" : ""} hover:text-blue-300 hover:border-blue-300`}
+          onClick={onClick}
+        >
+          {label}
+        </a>
+      </li>
+    );
+  }
 
 function List({ items, onDeleteItem, onToggleStatus, onEdititem }) {
   return (
