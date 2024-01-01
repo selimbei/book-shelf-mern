@@ -62,35 +62,20 @@ export default function App() {
 
   return (
     <>
-      <Header onAddItem={handleAddItem}/>
-      <Tab onFilter={handleFilter}/>
-      <List items={filteredItems} onDeleteItem={handleDeleteItem} onToggleStatus={handleToggleStatus} onEdititem={handleEditItem}/>
+      <Header onAddItem={handleAddItem} />
+      <Tab onFilter={handleFilter} />
+      <List
+        items={filteredItems}
+        onDeleteItem={handleDeleteItem}
+        onToggleStatus={handleToggleStatus}
+        onEdititem={handleEditItem}
+      />
     </>
   );
 }
 
 function Header({ onAddItem }) {
   const [showModal, setShowModal] = useState(false);
-  const [title, setTitle] = useState('');
-  const [author, setAuthor] = useState('');
-  const [year, setYear] = useState('');
-  const [isComplete, setIsComplete] = useState();
-
-  function handlerSubmit(e) {
-    e.preventDefault();
-
-    if(!title && !author && !year) return;
-
-    const newBook = { title, author, year, isComplete, id: Date.now() };
-    onAddItem(newBook);
-
-    setShowModal(false);
-
-    setTitle('');
-    setAuthor('');
-    setYear('');
-    setIsComplete();
-  }
 
   return (
     <header className="sticky top-0 bg-slate-100 flex justify-between items-center p-4 shadow-lg">
@@ -150,146 +135,171 @@ function Header({ onAddItem }) {
           />
         </svg>
       </button>
-      {showModal ? (
-        <>
-          <div
-            className="bg-black/50 flex justify-center items-end overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none"
-            onClick={() => {
-              setShowModal(false);
-            }}
-          >
-            <div
-              className="w-full my-6 mx-6 max-w-3xl"
-              onClick={(e) => {
-                e.stopPropagation();
-              }}
-            >
-              <div className="border-0 rounded-lg shadow-lg flex flex-col w-full bg-white outline-none focus:outline-none">
-                <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                    Create New Book
-                  </h3>
-                  <button
-                    type="button"
-                    className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
-                    onClick={() => {
-                      setShowModal(false);
-                    }}
-                  >
-                    <svg
-                      className="w-3 h-3"
-                      aria-hidden="true"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 14 14"
-                    >
-                      <path
-                        stroke="currentColor"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
-                      />
-                    </svg>
-                    <span className="sr-only">Close modal</span>
-                  </button>
-                </div>
-                <form className="p-4 md:p-5" onSubmit={handlerSubmit}>
-                  <div className="grid gap-4 mb-4 grid-cols-2">
-                    <div className="col-span-2">
-                      <label
-                        htmlFor="name"
-                        className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                      >
-                        Title
-                      </label>
-                      <input
-                        type="text"
-                        name="name"
-                        id="name"
-                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                        placeholder="Type book title"
-                        required=""
-                        value={title}
-                        onChange={(e) => setTitle(e.target.value)}
-                      />
-                    </div>
-                    <div className="col-span-2 sm:col-span-1">
-                      <label
-                        htmlFor="price"
-                        className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                      >
-                        Author
-                      </label>
-                      <input
-                        type="num"
-                        name="price"
-                        id="price"
-                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                        placeholder="Type book author"
-                        required=""
-                        value={author}
-                        onChange={(e) => setAuthor(e.target.value)}
-                      />
-                    </div>
-                    <div className="col-span-2 sm:col-span-1">
-                      <label
-                        htmlFor="price"
-                        className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                      >
-                        Year
-                      </label>
-                      <input
-                        type="number"
-                        name="price"
-                        id="price"
-                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                        placeholder="Type book year"
-                        required=""
-                        value={year}
-                        onChange={(e) => setYear(Number(e.target.value))}
-                      />
-                    </div>
-                    <div className="flex gap-2 items-center">
-                      <input
-                        type="checkbox"
-                        name=""
-                        id="isComplete"
-                        className="rounded border-gray-500"
-                        value={isComplete}
-                        onChange={(e) => setIsComplete(e.target.checked)}
-                      />
-                      <label htmlFor="isComplete">Sudah dibaca</label>
-                    </div>
-                  </div>
-                  <div className="flex gap-4">
-                    <button
-                      type="submit"
-                      className="text-white inline-flex items-center bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm p-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-                    >
-                      Add
-                    </button>
-                    <button
-                      type="submit"
-                      className="text-white inline-flex items-center bg-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm p-2.5 text-center"
-                      onClick={() => {
-                        setShowModal(false);
-                      }}
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-        </>
-      ) : null}
+      {showModal && <Modal onAddItem={onAddItem} setShowModal={setShowModal} />}
     </header>
   );
 }
 
-function Tab({onFilter}) {
+function Modal({ onAddItem, setShowModal }) {
+  const [title, setTitle] = useState("");
+  const [author, setAuthor] = useState("");
+  const [year, setYear] = useState("");
+  const [isComplete, setIsComplete] = useState();
+
+  function handlerSubmit(e) {
+    e.preventDefault();
+
+    if (!title && !author && !year) return;
+
+    const newBook = { title, author, year, isComplete, id: Date.now() };
+    onAddItem(newBook);
+
+    setShowModal(false);
+
+    setTitle("");
+    setAuthor("");
+    setYear("");
+    setIsComplete();
+  }
+
+  return (
+    <>
+      <div
+        className="bg-black/50 flex justify-center items-end overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none"
+        onClick={() => {
+          setShowModal(false);
+        }}
+      >
+        <div
+          className="w-full my-6 mx-6 max-w-3xl"
+          onClick={(e) => {
+            e.stopPropagation();
+          }}
+        >
+          <div className="border-0 rounded-lg shadow-lg flex flex-col w-full bg-white outline-none focus:outline-none">
+            <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Create New Book
+              </h3>
+              <button
+                type="button"
+                className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                onClick={() => {
+                  setShowModal(false);
+                }}
+              >
+                <svg
+                  className="w-3 h-3"
+                  aria-hidden="true"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 14 14"
+                >
+                  <path
+                    stroke="currentColor"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                  />
+                </svg>
+                <span className="sr-only">Close modal</span>
+              </button>
+            </div>
+            <form className="p-4 md:p-5" onSubmit={handlerSubmit}>
+              <div className="grid gap-4 mb-4 grid-cols-2">
+                <div className="col-span-2">
+                  <label
+                    htmlFor="name"
+                    className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                  >
+                    Title
+                  </label>
+                  <input
+                    type="text"
+                    name="name"
+                    id="name"
+                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                    placeholder="Type book title"
+                    required=""
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                  />
+                </div>
+                <div className="col-span-2 sm:col-span-1">
+                  <label
+                    htmlFor="price"
+                    className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                  >
+                    Author
+                  </label>
+                  <input
+                    type="num"
+                    name="price"
+                    id="price"
+                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                    placeholder="Type book author"
+                    required=""
+                    value={author}
+                    onChange={(e) => setAuthor(e.target.value)}
+                  />
+                </div>
+                <div className="col-span-2 sm:col-span-1">
+                  <label
+                    htmlFor="price"
+                    className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                  >
+                    Year
+                  </label>
+                  <input
+                    type="number"
+                    name="price"
+                    id="price"
+                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                    placeholder="Type book year"
+                    required=""
+                    value={year}
+                    onChange={(e) => setYear(Number(e.target.value))}
+                  />
+                </div>
+                <div className="flex gap-2 items-center">
+                  <input
+                    type="checkbox"
+                    name=""
+                    id="isComplete"
+                    className="rounded border-gray-500"
+                    value={isComplete}
+                    onChange={(e) => setIsComplete(e.target.checked)}
+                  />
+                  <label htmlFor="isComplete">Sudah dibaca</label>
+                </div>
+              </div>
+              <div className="flex gap-4">
+                <button
+                  type="submit"
+                  className="text-white inline-flex items-center bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm p-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+                >
+                  Add
+                </button>
+                <button
+                  type="submit"
+                  className="text-white inline-flex items-center bg-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm p-2.5 text-center"
+                  onClick={() => {
+                    setShowModal(false);
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+function Tab({ onFilter }) {
   return (
     <nav className="flex justify-center mt-4">
       <div className="text-sm font-medium text-center text-slate-400">
@@ -343,8 +353,14 @@ function List({ items, onDeleteItem, onToggleStatus, onEdititem }) {
   return (
     <ul className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-10 px-4 divide-y">
       {items.map((item, i) => (
-          <ListItem key={i} item={item} onDeleteItem={onDeleteItem} onToggleStatus={onToggleStatus} onEdititem={onEdititem}/>
-        ))}
+        <ListItem
+          key={i}
+          item={item}
+          onDeleteItem={onDeleteItem}
+          onToggleStatus={onToggleStatus}
+          onEdititem={onEdititem}
+        />
+      ))}
     </ul>
   );
 }
@@ -457,22 +473,22 @@ function ListItem({ item, onDeleteItem, onToggleStatus }) {
   );
 }
 
-  function Sudah({item, onToggleStatus}) {
-    return (
-      <button onClick={() => onToggleStatus(item.id)}>
-        <span className="bg-green-200 text-green-700 text-xs font-medium ml-2 px-2.5 py-0.5 rounded-full w-min">
-          Done
-        </span>
-      </button>
-    );
-  }
+function Sudah({ item, onToggleStatus }) {
+  return (
+    <button onClick={() => onToggleStatus(item.id)}>
+      <span className="bg-green-200 text-green-700 text-xs font-medium ml-2 px-2.5 py-0.5 rounded-full w-min">
+        Done
+      </span>
+    </button>
+  );
+}
 
-  function Belum({item, onToggleStatus}) {
-    return (
-      <button onClick={() => onToggleStatus(item.id)}>
-        <span className="bg-red-200 text-red-700 text-xs font-medium ml-2 px-2.5 py-0.5 rounded-full w-min">
-          Undone
-        </span>
-      </button>
-    );
-  }
+function Belum({ item, onToggleStatus }) {
+  return (
+    <button onClick={() => onToggleStatus(item.id)}>
+      <span className="bg-red-200 text-red-700 text-xs font-medium ml-2 px-2.5 py-0.5 rounded-full w-min">
+        Undone
+      </span>
+    </button>
+  );
+}
