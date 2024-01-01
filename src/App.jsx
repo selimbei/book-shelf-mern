@@ -22,6 +22,7 @@ const books = [
 export default function App() {
   const [items, setItems] = useState(books);
   const [filteredItems, setFilteredItems] = useState(items);
+  const [mode, setMode] = useState();
 
   function handleAddItem(item) {
     setItems([...items, item]);
@@ -29,6 +30,7 @@ export default function App() {
 
   function handleDeleteItem(id) {
     setItems((items) => items.filter((item) => item.id !== id));
+    setFilteredItems((items) => items.filter((item) => item.id !== id));
   }
 
   function handleEditItem(id) {
@@ -42,6 +44,11 @@ export default function App() {
   function handleToggleStatus(id) {
     setItems((items) =>
       items.map((item) =>
+        item.id === id ? { ...item, isComplete: !item.isComplete } : item
+      )
+    );
+    setFilteredItems((filteredItems) =>
+      filteredItems.map((item) =>
         item.id === id ? { ...item, isComplete: !item.isComplete } : item
       )
     );
@@ -60,11 +67,25 @@ export default function App() {
     }
   }
 
+  function handleSetMode(by) {
+    switch (by) {
+      case true:
+        setMode(true);
+        break;
+      case false:
+        setMode(false);
+        break;
+      default:
+        setMode();
+    }
+  }
+
   return (
     <>
       <Header onAddItem={handleAddItem} />
-      <Tabs onFilter={handleFilter} />
+      <Tabs onFilter={handleFilter} onSetMode={handleSetMode}/>
       <List
+        mode={mode}
         items={filteredItems}
         onDeleteItem={handleDeleteItem}
         onToggleStatus={handleToggleStatus}
@@ -299,7 +320,7 @@ function Modal({ onAddItem, setShowModal }) {
   );
 }
 
-function Tabs({ onFilter }) {
+function Tabs({ onFilter, onSetMode }) {
   // const tabs = ['All', 'Done', 'Undone'];
   const tabs = [
     {"content": 'All',
@@ -324,7 +345,8 @@ function Tabs({ onFilter }) {
               label={tab.content}
               onClick={() => {
                 setActiveTab(index);
-                onFilter(tab.bool)
+                onFilter(tab.bool);
+                onSetMode(tab.bool);
               }}
               isActive={index === activeTab}
             />
@@ -349,20 +371,54 @@ function Tabs({ onFilter }) {
     );
   }
 
-function List({ items, onDeleteItem, onToggleStatus, onEdititem }) {
-  return (
-    <ul className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-10 px-4 divide-y">
-      {items.map((item, i) => (
-        <ListItem
-          key={i}
-          item={item}
-          onDeleteItem={onDeleteItem}
-          onToggleStatus={onToggleStatus}
-          onEdititem={onEdititem}
-        />
-      ))}
-    </ul>
-  );
+function List({ items, onDeleteItem, onToggleStatus, onEdititem, mode }) {
+  
+  switch (mode) {
+    case true:
+      return (
+        <ul className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-10 px-4 divide-y">
+          {items.filter((item) => item.isComplete).map((item, i) => (
+            <ListItem
+              key={i}
+              item={item}
+              onDeleteItem={onDeleteItem}
+              onToggleStatus={onToggleStatus}
+              onEdititem={onEdititem}
+            />
+          ))}
+        </ul>
+      );
+
+    case false:
+      return (
+        <ul className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-10 px-4 divide-y">
+          {items.filter((item) => !item.isComplete).map((item, i) => (
+            <ListItem
+              key={i}
+              item={item}
+              onDeleteItem={onDeleteItem}
+              onToggleStatus={onToggleStatus}
+              onEdititem={onEdititem}
+            />
+          ))}
+        </ul>
+      );
+
+    default:
+      return (
+        <ul className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-10 px-4 divide-y">
+          {items.map((item, i) => (
+            <ListItem
+              key={i}
+              item={item}
+              onDeleteItem={onDeleteItem}
+              onToggleStatus={onToggleStatus}
+              onEdititem={onEdititem}
+            />
+          ))}
+        </ul>
+      );
+  }
 }
 
 function ListItem({ item, onDeleteItem, onToggleStatus }) {
