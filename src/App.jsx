@@ -21,8 +21,10 @@ const books = [
 
 export default function App() {
   const [items, setItems] = useState(books);
-  const [filteredItems, setFilteredItems] = useState(items);
   const [mode, setMode] = useState();
+  const [searchItem, setSearchItem] = useState("");
+  const [searchedItems, setSearchedItems] = useState(items);
+  const [searchMode, setSearchMode] = useState();
 
   function handleAddItem(item) {
     setItems([...items, item]);
@@ -30,7 +32,6 @@ export default function App() {
 
   function handleDeleteItem(id) {
     setItems((items) => items.filter((item) => item.id !== id));
-    setFilteredItems((items) => items.filter((item) => item.id !== id));
   }
 
   function handleEditItem(id) {
@@ -47,24 +48,11 @@ export default function App() {
         item.id === id ? { ...item, isComplete: !item.isComplete } : item
       )
     );
-    setFilteredItems((filteredItems) =>
-      filteredItems.map((item) =>
+    setSearchedItems((items) =>
+      items.map((item) =>
         item.id === id ? { ...item, isComplete: !item.isComplete } : item
       )
     );
-  }
-
-  function handleFilter(by) {
-    switch (by) {
-      case true:
-        setFilteredItems(items.filter((item) => item.isComplete));
-        break;
-      case false:
-        setFilteredItems(items.filter((item) => !item.isComplete));
-        break;
-      default:
-        setFilteredItems(items);
-    }
   }
 
   function handleSetMode(by) {
@@ -80,22 +68,38 @@ export default function App() {
     }
   }
 
+  function handleSearchItem(e) {
+    const searchTerm = e.target.value;
+    setSearchItem(searchTerm);
+
+    const searchedItems = items.filter((item) =>
+      item.title.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    setSearchedItems(searchedItems);
+  }
+
   return (
     <>
-      <Header onAddItem={handleAddItem} />
-      <Tabs onFilter={handleFilter} onSetMode={handleSetMode}/>
+      <Header
+        onAddItem={handleAddItem}
+        onSearchItem={handleSearchItem}
+        searchItem={searchItem}
+        setSearchMode={setSearchMode}
+      />
+      <Tabs onSetMode={handleSetMode} />
       <List
         mode={mode}
-        items={filteredItems}
+        items={searchMode ? searchedItems : items}
         onDeleteItem={handleDeleteItem}
         onToggleStatus={handleToggleStatus}
-        onEdititem={handleEditItem}
+        onEditItem={handleEditItem}
       />
     </>
   );
 }
 
-function Header({ onAddItem }) {
+function Header({ onAddItem, onSearchItem, searchItem, setSearchMode }) {
   const [showModal, setShowModal] = useState(false);
 
   return (
@@ -130,8 +134,17 @@ function Header({ onAddItem }) {
             type="search"
             name="q"
             className="py-2 text-sm text-slate-800 bg-slate-50 border border-slate-200 rounded-full pl-10"
-            placeholder="Cari judul buku"
+            placeholder="Search book title"
             autoComplete="off"
+            value={searchItem}
+            onChange={(e) => {
+              onSearchItem(e);
+              if(!searchItem) {
+                setSearchMode(false);
+              } else {
+                setSearchMode(true);
+              }
+            }}
           />
         </div>
       </form>
@@ -320,18 +333,11 @@ function Modal({ onAddItem, setShowModal }) {
   );
 }
 
-function Tabs({ onFilter, onSetMode }) {
-  // const tabs = ['All', 'Done', 'Undone'];
+function Tabs({ onSetMode }) {
   const tabs = [
-    {"content": 'All',
-      "bool": undefined
-    },
-    {"content": 'Done',
-      "bool": true
-    },
-    {"content": 'Undone',
-      "bool": false
-    },
+    { content: "All", bool: undefined },
+    { content: "Done", bool: true },
+    { content: "Undone", bool: false },
   ];
   const [activeTab, setActiveTab] = useState(0);
 
@@ -345,7 +351,6 @@ function Tabs({ onFilter, onSetMode }) {
               label={tab.content}
               onClick={() => {
                 setActiveTab(index);
-                onFilter(tab.bool);
                 onSetMode(tab.bool);
               }}
               isActive={index === activeTab}
@@ -357,50 +362,61 @@ function Tabs({ onFilter, onSetMode }) {
   );
 }
 
-  function Tab({label, onClick, isActive}) {
-    return (
-      <li className="me-2">
-        <a
-          href="#"
-          className={`inline-block p-4 border-b-2 border-transparent ${isActive ? "text-blue-500 border-blue-500" : ""} hover:text-blue-300 hover:border-blue-300`}
-          onClick={onClick}
-        >
-          {label}
-        </a>
-      </li>
-    );
-  }
+function Tab({ label, onClick, isActive }) {
+  return (
+    <li className="me-2">
+      <a
+        href="#"
+        className={`inline-block p-4 border-b-2 border-transparent ${
+          isActive ? "text-blue-500 border-blue-500" : ""
+        } hover:text-blue-300 hover:border-blue-300`}
+        onClick={onClick}
+      >
+        {label}
+      </a>
+    </li>
+  );
+}
 
-function List({ items, onDeleteItem, onToggleStatus, onEdititem, mode }) {
-  
+function List({
+  items,
+  onDeleteItem,
+  onToggleStatus,
+  onEditItem,
+  mode,
+}) {
   switch (mode) {
     case true:
       return (
         <ul className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-10 px-4 divide-y">
-          {items.filter((item) => item.isComplete).map((item, i) => (
-            <ListItem
-              key={i}
-              item={item}
-              onDeleteItem={onDeleteItem}
-              onToggleStatus={onToggleStatus}
-              onEdititem={onEdititem}
-            />
-          ))}
+          {items
+            .filter((item) => item.isComplete)
+            .map((item, i) => (
+              <ListItem
+                key={i}
+                item={item}
+                onDeleteItem={onDeleteItem}
+                onToggleStatus={onToggleStatus}
+                onEditItem={onEditItem}
+              />
+            ))}
         </ul>
       );
 
     case false:
       return (
         <ul className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-10 px-4 divide-y">
-          {items.filter((item) => !item.isComplete).map((item, i) => (
-            <ListItem
-              key={i}
-              item={item}
-              onDeleteItem={onDeleteItem}
-              onToggleStatus={onToggleStatus}
-              onEdititem={onEdititem}
-            />
-          ))}
+          {items
+            .filter((item) => !item.isComplete)
+            .map((item, i) => (
+              <ListItem
+                key={i}
+                item={item}
+                onDeleteItem={onDeleteItem}
+                onToggleStatus={onToggleStatus}
+                onEditItem={onEditItem}
+              />
+            ))}
         </ul>
       );
 
@@ -413,7 +429,7 @@ function List({ items, onDeleteItem, onToggleStatus, onEdititem, mode }) {
               item={item}
               onDeleteItem={onDeleteItem}
               onToggleStatus={onToggleStatus}
-              onEdititem={onEdititem}
+              onEditItem={onEditItem}
             />
           ))}
         </ul>
