@@ -16,7 +16,7 @@ const books = [
     year: 2020,
     isComplete: false,
     id: 2,
-  },
+  }
 ];
 
 export default function App() {
@@ -32,12 +32,13 @@ export default function App() {
 
   function handleDeleteItem(id) {
     setItems((items) => items.filter((item) => item.id !== id));
+    setSearchedItems((items) => items.filter((item) => item.id !== id));
   }
 
-  function handleEditItem(id) {
+  function handleEditItem(id, editedBook) {
     setItems((items) =>
       items.map((item) =>
-        item.id === id ? { ...item, isComplete: !item.isComplete } : item
+        item.id === id ? { ...item, title: editedBook.title, author: editedBook.author, year: editedBook.year, isComplete: editedBook.isComplete } : item
       )
     );
   }
@@ -169,12 +170,12 @@ function Header({ onAddItem, onSearchItem, searchItem, setSearchMode }) {
           />
         </svg>
       </button>
-      {showModal && <Modal onAddItem={onAddItem} setShowModal={setShowModal} />}
+      {showModal && <ModalNewBook onAddItem={onAddItem} setShowModal={setShowModal} />}
     </header>
   );
 }
 
-function Modal({ onAddItem, setShowModal }) {
+function ModalNewBook({ onAddItem, setShowModal }) {
   const [title, setTitle] = useState("");
   const [author, setAuthor] = useState("");
   const [year, setYear] = useState("");
@@ -183,7 +184,7 @@ function Modal({ onAddItem, setShowModal }) {
   function handlerSubmit(e) {
     e.preventDefault();
 
-    if (!title && !author && !year) return;
+    if (!title || !author || !year) return;
 
     const newBook = { title, author, year, isComplete, id: Date.now() };
     onAddItem(newBook);
@@ -437,8 +438,10 @@ function List({
   }
 }
 
-function ListItem({ item, onDeleteItem, onToggleStatus }) {
+function ListItem({ item, onDeleteItem, onToggleStatus, onEditItem }) {
   const [showPopup, setShowPopup] = useState(false);
+  const [showDialogDelete, setShowDialogDelete] = useState(false);
+  const [showModalEdit, setShowModalEdit] = useState(false);
   const ref = useRef();
 
   useEffect(() => {
@@ -472,11 +475,12 @@ function ListItem({ item, onDeleteItem, onToggleStatus }) {
       </div>
       <div className="p-2">
         <div className="flex justify-end items-center px-4 pt-4" ref={ref}>
-          {/* Dropdown menu */}
           {showPopup ? (
             <div className="">
               <div className="relative flex gap-4">
-                <button className="text-blue-500 text-sm">
+                <button className="text-blue-500 text-sm" onClick={() => {
+                  setShowModalEdit(true);
+                }}>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
@@ -492,9 +496,12 @@ function ListItem({ item, onDeleteItem, onToggleStatus }) {
                     />
                   </svg>
                 </button>
+                {showModalEdit ? (<ModalEditBook item={item} onEditItem={onEditItem} setShowModalEdit={setShowModalEdit}/>) : null}
                 <button
                   className="text-red-500 text-sm"
-                  onClick={() => onDeleteItem(item.id)}
+                  onClick={() => {
+                    setShowDialogDelete(true);
+                  }}
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -511,6 +518,13 @@ function ListItem({ item, onDeleteItem, onToggleStatus }) {
                     />
                   </svg>
                 </button>
+                {showDialogDelete ? (
+                  <DialogDelete
+                    item={item}
+                    onDeleteItem={onDeleteItem}
+                    setShowDialogDelete={setShowDialogDelete}
+                  />
+                ) : null}
               </div>
             </div>
           ) : null}
@@ -519,7 +533,6 @@ function ListItem({ item, onDeleteItem, onToggleStatus }) {
             data-dropdown-toggle="dropdown"
             className="inline-block text-gray-500 rounded-full text-sm p-1.5"
             type="button"
-            // onClick={() => onDeleteItem(item.id)}
             onClick={() => setShowPopup(!showPopup)}
           >
             <span className="sr-only">Open dropdown</span>
@@ -562,5 +575,214 @@ function Belum({ item, onToggleStatus }) {
         Undone
       </span>
     </button>
+  );
+}
+
+function DialogDelete({item, onDeleteItem, setShowDialogDelete}) {
+  const handleCLickDelete = () => {
+    onDeleteItem(item.id);
+    setShowDialogDelete(false)
+  }
+
+  const handleCLickDialog = () => {
+    setShowDialogDelete(false)
+  }
+
+  return (
+    <>
+      <div className="bg-black/50 flex justify-center items-end overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none"
+      onClick={handleCLickDialog}>
+        <div
+          className="w-full my-6 mx-6 max-w-3xl"
+          onClick={(e) => {
+            e.stopPropagation();
+          }}
+        >
+          <div className="border-0 rounded-lg shadow-lg flex flex-col w-full bg-white outline-none focus:outline-none">
+            <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Are you sure ?
+              </h3>
+            </div>
+            <div className="p-4 md:p-5">
+              <div className="flex gap-4 justify-end">
+                <button
+                  type="submit"
+                  className="text-white inline-flex items-center bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm p-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+                  onClick={handleCLickDialog}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="text-white inline-flex items-center bg-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm p-2.5 text-center"
+                  onClick={handleCLickDelete}
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+function ModalEditBook({item, onEditItem, setShowModalEdit }) {
+  const [title, setTitle] = useState(item.title);
+  const [author, setAuthor] = useState(item.author);
+  const [year, setYear] = useState(item.year);
+  const [isComplete, setIsComplete] = useState(item.isComplete);
+
+  function handlerSubmitEdit(e) {
+    e.preventDefault();
+
+    if (!title || !author || !year) return;
+
+    const editedBook = { title, author, year, isComplete, id: item.id };
+    onEditItem(item.id, editedBook);
+
+    setShowModalEdit(false);
+
+    setTitle("");
+    setAuthor("");
+    setYear("");
+    setIsComplete();
+  }
+
+  function handlerCloseModalEdit() {
+    setShowModalEdit(false);
+  }
+
+  return (
+    <>
+      <div
+        className="bg-black/50 flex justify-center items-end overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none"
+        onClick={handlerCloseModalEdit}
+      >
+        <div
+          className="w-full my-6 mx-6 max-w-3xl"
+          onClick={(e) => {
+            e.stopPropagation();
+          }}
+        >
+          <div className="border-0 rounded-lg shadow-lg flex flex-col w-full bg-white outline-none focus:outline-none">
+            <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Edit Book
+              </h3>
+              <button
+                type="button"
+                className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                onClick={handlerCloseModalEdit}
+              >
+                <svg
+                  className="w-3 h-3"
+                  aria-hidden="true"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 14 14"
+                >
+                  <path
+                    stroke="currentColor"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                  />
+                </svg>
+                <span className="sr-only">Close modal</span>
+              </button>
+            </div>
+            <form className="p-4 md:p-5" onSubmit={handlerSubmitEdit}>
+              <div className="grid gap-4 mb-4 grid-cols-2">
+                <div className="col-span-2">
+                  <label
+                    htmlFor="name"
+                    className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                  >
+                    Title
+                  </label>
+                  <input
+                    type="text"
+                    name="name"
+                    id="name"
+                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                    placeholder="Type book title"
+                    required=""
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                  />
+                </div>
+                <div className="col-span-2 sm:col-span-1">
+                  <label
+                    htmlFor="price"
+                    className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                  >
+                    Author
+                  </label>
+                  <input
+                    type="num"
+                    name="price"
+                    id="price"
+                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                    placeholder="Type book author"
+                    required=""
+                    value={author}
+                    onChange={(e) => setAuthor(e.target.value)}
+                  />
+                </div>
+                <div className="col-span-2 sm:col-span-1">
+                  <label
+                    htmlFor="price"
+                    className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                  >
+                    Year
+                  </label>
+                  <input
+                    type="number"
+                    name="price"
+                    id="price"
+                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                    placeholder="Type book year"
+                    required=""
+                    value={year}
+                    onChange={(e) => setYear(Number(e.target.value))}
+                  />
+                </div>
+                <div className="flex gap-2 items-center">
+                  <input
+                    checked={isComplete}
+                    type="checkbox"
+                    name=""
+                    id="isComplete"
+                    className="rounded border-gray-500"
+                    value={isComplete}
+                    onChange={(e) => setIsComplete(e.target.checked)}
+                  />
+                  <label htmlFor="isComplete">Sudah dibaca</label>
+                </div>
+              </div>
+              <div className="flex gap-4">
+                <button
+                  type="submit"
+                  className="text-white inline-flex items-center bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm p-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+                >
+                  Edit
+                </button>
+                <button
+                  type="submit"
+                  className="text-white inline-flex items-center bg-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm p-2.5 text-center"
+                  onClick={handlerCloseModalEdit}
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </>
   );
 }
