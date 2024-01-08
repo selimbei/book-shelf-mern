@@ -28,6 +28,7 @@ export default function App() {
 
   function handleAddItem(item) {
     setItems([...items, item]);
+    setSearchedItems([...items, item]);
   }
 
   function handleDeleteItem(id) {
@@ -42,6 +43,8 @@ export default function App() {
       )
     );
   }
+
+  console.log(books.filter((book) => book.isComplete).length)
 
   function handleToggleStatus(id) {
     setItems((items) =>
@@ -88,7 +91,7 @@ export default function App() {
         searchItem={searchItem}
         setSearchMode={setSearchMode}
       />
-      <Tabs onSetMode={handleSetMode} />
+      <Tabs onSetMode={handleSetMode} items={items} />
       <List
         mode={mode}
         items={searchMode ? searchedItems : items}
@@ -334,7 +337,7 @@ function ModalNewBook({ onAddItem, setShowModal }) {
   );
 }
 
-function Tabs({ onSetMode }) {
+function Tabs({ onSetMode, items }) {
   const tabs = [
     { content: "All", bool: undefined },
     { content: "Done", bool: true },
@@ -342,14 +345,18 @@ function Tabs({ onSetMode }) {
   ];
   const [activeTab, setActiveTab] = useState(0);
 
+
+
   return (
     <nav className="flex justify-center mt-4">
       <div className="text-sm font-medium text-center text-slate-400">
-        <ul className="flex flex-wrap -mb-px">
+        <ul className="flex flex-wrap -mb-px text-sm font-medium text-center text-slate-400">
           {tabs.map((tab, index) => (
             <Tab
               key={index}
               label={tab.content}
+              tab={tab}
+              items={items}
               onClick={() => {
                 setActiveTab(index);
                 onSetMode(tab.bool);
@@ -363,18 +370,35 @@ function Tabs({ onSetMode }) {
   );
 }
 
-function Tab({ label, onClick, isActive }) {
+function Tab({ label, tab, items, onClick, isActive }) {
+  let badge
+
+  if (tab.bool === true) {
+    badge = items.filter((item) => item.isComplete).length
+  } else if (tab.bool === false) {
+    badge = items.filter((item) => !item.isComplete).length
+  } else {
+    badge = items.length
+  }
+
   return (
     <li className="me-2">
-      <a
+      <button
         href="#"
-        className={`inline-block p-4 border-b-2 border-transparent ${
-          isActive ? "text-blue-500 border-blue-500" : ""
-        } hover:text-blue-300 hover:border-blue-300`}
+        className={`inline-flex gap-2 items-center justify-center p-4 border-b-2  rounded-t-lg group ${
+          isActive
+            ? "text-blue-500 border-blue-500"
+            : "hover:text-slate-600 hover:border-slate-600"
+        }`}
         onClick={onClick}
       >
+        {badge != 0 ? (
+          <span className={`inline-flex items-center justify-center w-4 h-4 ms-2 text-xs font-semibold ${isActive ? "text-blue-500 bg-blue-200" : "text-slate-400 bg-slate-200 group-hover:text-slate-600 group-hover:bg-slate-300"}  rounded-full`}>
+          {badge}
+        </span>
+        ) : null}
         {label}
-      </a>
+      </button>
     </li>
   );
 }
